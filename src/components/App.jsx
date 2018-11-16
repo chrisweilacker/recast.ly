@@ -6,9 +6,10 @@ class App extends React.Component {
       currentVideo: props.videos ? props.videos[0] : window.exampleVideoData[0],
       videoList: props.videos,
       query: 'Stan Lee',
-      lastSearch: Date.now()
+      lastSearch: Date.now(),
+      auto: false
     };
-
+    this.Auto = false;
     this.firstSearch = true;
   }
 
@@ -33,8 +34,16 @@ class App extends React.Component {
   }
 
   videoListEntryClick (video) {
-    this.setState({
-      currentVideo: video
+    var options = {
+      key: window.YOUTUBE_API_KEY,
+      videoID: video.id.videoId
+    };
+
+    this.props.getVideo(options, (videoData) => {
+      this.setState({
+        currentVideo: videoData,
+        auto: this.Auto
+      });
     });
   }
 
@@ -49,11 +58,10 @@ class App extends React.Component {
         </nav>
         <div className="row">
           <div className="col-md-7">
-            <VideoPlayer video={this.state.currentVideo}/>
-
+            <VideoPlayer video={this.state.currentVideo} autoplay={this.state.auto}/>
           </div>
           <div className="col-md-5">
-            <VideoList videos={this.state.videoList} listEntryClickFn={this.videoListEntryClick.bind(this)} />
+            <VideoList videos={this.state.videoList} listEntryClickFn={this.videoListEntryClick.bind(this)} autoPlayClick={this.autoPlayClicked.bind(this)} />
           </div>
         </div>
       </div>
@@ -62,7 +70,45 @@ class App extends React.Component {
 
 
   componentDidMount () {
-    this.getVideos();
+    this.getVideosAndCurrentVideo();
+  }
+
+  autoPlayClicked(event) {
+    debugger;
+    if (this.Auto) {
+      event.target.innerHTML = "Turn On Autoplay";
+      this.Auto = false;
+    } else {
+      event.target.innerHTML = "Turn Off Autoplay";
+      this.Auto = true;
+    }
+
+  }
+
+  getVideosAndCurrentVideo(q) {
+    var options = {
+      key: window.YOUTUBE_API_KEY,
+      max: 10,
+      query: q ? q : this.state.query
+    };
+
+    //use successCB to get the new videolist and video details
+
+    this.props.searchYouTube(options, (data) => {
+      options.videoID = data[0].id.videoId;
+      this.props.getVideo(options, (videoData) => {
+        console.log(data);
+        console.log(videoData);
+        this.setState({
+          currentVideo: videoData,
+          videoList: data,
+          query: q,
+          lastSearch: Date.now(),
+          auto: this.Auto
+        });
+      });
+    });
+
   }
 
   getVideos(q) {
@@ -75,19 +121,17 @@ class App extends React.Component {
     //use successCB to get the new videolist and video details
 
     this.props.searchYouTube(options, (data) => {
-      options.videoID = data[0].id.videoId;
-        this.props.getVideo(options, (videoData) => {
-          this.setState({
-            currentVideo: videoData,
-            videoList: data,
-            query: q,
-            lastSearch: Date.now()
-          });
-        });
+      this.setState({
+        videoList: data,
+        query: q,
+        lastSearch: Date.now(),
+        auto: this.Auto
+      });
     });
 
   }
 }
+
 
 // In the ES6 spec, files are "modules" and do not share a top-level scope
 // `var` declarations will only exist globally where explicitly defined

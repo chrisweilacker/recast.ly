@@ -5,7 +5,7 @@ class VideoList extends React.Component {
     // PropTypes tell other developers what `props` a component expects
     // Warnings will be shown in the console when the defined rules are violated
   }
-  
+
   render () {
     var videoList = [];
     if (this.props.videos) {
@@ -14,14 +14,19 @@ class VideoList extends React.Component {
       }
     }
     return (<div className="video-list">
-      {videoList}
+      <div>
+        <button type="button" autoComplete="off" onClick={this.props.autoPlayClick} className="btn btn-primary" data-toggle="button" aria-pressed="false" >
+          Turn On Autoplay
+        </button>
+      </div>
+    {videoList}
 
     </div>);
-  
+
   }
   static propTypes () {
     videos: React.PropTypes.array.isRequired;
-  } 
+  }
 
 }
 // In the ES6 spec, files are "modules" and do not share a top-level scope.
